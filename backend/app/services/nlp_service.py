@@ -4,7 +4,7 @@ NLP Service - Product name extraction and normalization
 import re
 import spacy
 from typing import List, Optional, Tuple
-from thefuzz import fuzz
+from rapidfuzz import fuzz
 from app.core.config import settings
 
 
