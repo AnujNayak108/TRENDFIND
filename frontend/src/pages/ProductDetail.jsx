@@ -9,6 +9,7 @@ function ProductDetail() {
   const [error, setError] = useState('')
 
   useEffect(() => {
+    console.log('ProductDetail useEffect - ID from params:', id)
     // Only load if id is valid (not undefined, null, or empty string)
     if (id && id !== 'undefined' && id !== 'null') {
       loadProduct()
@@ -30,9 +31,14 @@ function ProductDetail() {
     }
     
     try {
+      console.log('Calling productsAPI.getById with ID:', id)
       const data = await productsAPI.getById(id)
+      console.log('Product data received:', data)
       setProduct(data)
     } catch (err) {
+      console.error('Error loading product:', err)
+      console.error('Error response:', err.response)
+      console.error('Error message:', err.message)
       setError(err.response?.data?.detail || err.message || 'Failed to load product')
     } finally {
       setLoading(false)
