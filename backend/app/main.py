@@ -1,30 +1,6 @@
 """
 FastAPI Application Entry Point
 """
-# Apply Python 3.12 compatibility patch for pydantic v1 (used by spacy)
-# This must be imported before any spacy imports
-import sys
-if sys.version_info >= (3, 12):
-    import typing
-    _original_evaluate = typing.ForwardRef._evaluate
-    
-    def _patched_evaluate(self, *args, **kwargs):
-        """Patched version that handles both old (pydantic v1) and new (Python 3.12) signatures"""
-        # Python 3.12 signature: _evaluate(self, globalns, localns, type_params, *, recursive_guard)
-        # Pydantic v1 calls: _evaluate(globalns, localns, set()) - 3 positional args
-        if len(args) == 3 and 'recursive_guard' not in kwargs:
-            globalns, localns, recursive_guard = args
-            return _original_evaluate(self, globalns, localns, type_params=None, recursive_guard=recursive_guard)
-        elif len(args) == 2 and 'recursive_guard' not in kwargs:
-            globalns, localns = args
-            return _original_evaluate(self, globalns, localns, type_params=None, recursive_guard=set())
-        else:
-            if 'recursive_guard' not in kwargs:
-                kwargs['recursive_guard'] = set()
-            return _original_evaluate(self, *args, **kwargs)
-    
-    typing.ForwardRef._evaluate = _patched_evaluate
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.encoders import jsonable_encoder
