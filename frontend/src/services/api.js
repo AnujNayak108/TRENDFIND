@@ -1,6 +1,10 @@
 import axios from 'axios'
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'
+// Normalize VITE_API_URL so deployments that set only the domain still work
+const rawApiUrl = (import.meta.env.VITE_API_URL || '').trim()
+const API_BASE_URL = rawApiUrl
+  ? rawApiUrl.replace(/\/+$/,'') + '/api/v1' // ensure it ends with /api/v1
+  : 'http://localhost:8000/api/v1'
 
 console.log('API Base URL:', API_BASE_URL)
 
@@ -9,6 +13,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 10000, // 10s timeout to avoid requests hanging indefinitely
 })
 
 export const trendsAPI = {

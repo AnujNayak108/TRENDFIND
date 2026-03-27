@@ -1,6 +1,7 @@
 """
 MongoDB Database Connection and Configuration
 """
+import asyncio
 from motor.motor_asyncio import AsyncIOMotorClient
 from typing import Optional
 from app.core.config import settings
@@ -19,17 +20,26 @@ async def connect_to_mongo():
     try:
         print("Connecting to MongoDB...")
         # For MongoDB Atlas (mongodb+srv://), SSL is handled automatically
-        # Increased timeout to 30 seconds to allow for network delays
+        # Use shorter timeout to fail faster if network is unavailable
         database.client = AsyncIOMotorClient(
             settings.MONGODB_URL,
-            serverSelectionTimeoutMS=30000,  # 30 second timeout
-            connectTimeoutMS=30000,
-            socketTimeoutMS=30000
+            serverSelectionTimeoutMS=10000,  # 10 second timeout
+            connectTimeoutMS=10000,
+            socketTimeoutMS=10000,
+            retryWrites=False  # Disable retries to fail faster
         )
         
         # Test connection with timeout handling
         print("  Testing connection...")
-        await database.client.admin.command('ping')
+        try:
+            await asyncio.wait_for(
+                database.client.admin.command('ping'),
+                timeout=5.0  # 5 second timeout for the ping command
+            )
+        except asyncio.TimeoutError:
+            print("  [WARNING] MongoDB connection test timed out")
+            print("  Server will continue in degraded mode")
+            return  # Don't raise - continue with degraded mode
         
         # Get connection info
         is_atlas = "mongodb+srv://" in settings.MONGODB_URL
@@ -42,6 +52,10 @@ async def connect_to_mongo():
         await create_indexes()
         print("  Indexes created successfully")
         
+    except asyncio.TimeoutError:
+        print("[WARNING] MongoDB connection timed out - starting in degraded mode")
+        print("  The server will work but without database features")
+        # Don't raise - allow server to continue
     except Exception as e:
         error_msg = str(e)
         print(f"[ERROR] MongoDB connection failed!")
@@ -65,7 +79,8 @@ async def connect_to_mongo():
             print("  2. Check your internet connection")
             print("  3. Ensure MongoDB Atlas cluster is running")
         
-        raise
+        # Don't raise - allow server to continue in degraded mode
+        print("  Continuing with degraded mode...")
 
 
 async def close_mongo_connection():

@@ -31,7 +31,9 @@ async def startup_db():
     try:
         await connect_to_mongo()
         # Start automatic scraping scheduler (runs initial scrape immediately)
-        await SchedulerService.start()
+        # Run in background so it doesn't block the server startup
+        import asyncio
+        asyncio.create_task(SchedulerService.start())
     except Exception as e:
         print(f"\n[WARNING] Server starting without MongoDB connection:")
         print(f"  {str(e)}")
