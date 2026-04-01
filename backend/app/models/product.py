@@ -29,6 +29,7 @@ class ProductBase(BaseModel):
     normalized_name: str = Field(..., description="Normalized name for deduplication")
     category: Optional[str] = Field(None, description="Product category")
     short_description: Optional[str] = Field(None, description="Short description of the product")
+    image_url: Optional[str] = Field(None, description="Product image URL")
     price: Optional[PriceInfo] = Field(None, description="Price range if available")
     trend_sources: List[TrendSource] = Field(default_factory=list, description="Sources where this product was mentioned")
     trend_score: float = Field(default=0.0, description="Trending score (0-100)")

@@ -4,7 +4,7 @@ import axios from 'axios'
 const rawApiUrl = (import.meta.env.VITE_API_URL || '').trim()
 const API_BASE_URL = rawApiUrl
   ? rawApiUrl.replace(/\/+$/,'') + '/api/v1' // ensure it ends with /api/v1
-  : 'http://localhost:8000/api/v1'
+  : '/api/v1'
 
 console.log('API Base URL:', API_BASE_URL)
 

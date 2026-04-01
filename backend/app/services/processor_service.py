@@ -6,7 +6,7 @@ from datetime import datetime
 from app.services.trend_service import TrendService
 from app.services.product_service import ProductService
 from app.services.nlp_service import NLPService
-from app.services.firecrawl_service import FirecrawlService
+from app.services.native_scraper_service import NativeScraperService
 from app.models.product import ProductCreate, TrendSource
 from app.models.buy_link import BuyLinkCreate
 
@@ -93,62 +93,70 @@ class ProcessorService:
             
             stats["products_merged"] += 1
             
-            # Try to get more info from Firecrawl if we don't have it
+            # Try to get more info from NativeScraper if we don't have it
             if not existing_product.short_description and trend.source_url:
-                firecrawl_data = await FirecrawlService.scrape_url(trend.source_url)
-                if firecrawl_data and firecrawl_data.get("product_name"):
-                    # Update product with Firecrawl data
+                scraper_data = await NativeScraperService.scrape_product_details(trend.source_url)
+                if scraper_data and scraper_data.get("product_name"):
+                    # Update product with Scraped data
                     update_data = {}
-                    if firecrawl_data.get("short_description"):
-                        update_data["short_description"] = firecrawl_data["short_description"]
-                    if firecrawl_data.get("category"):
-                        update_data["category"] = firecrawl_data["category"]
-                    if firecrawl_data.get("price"):
-                        update_data["price"] = firecrawl_data["price"]
-                    if firecrawl_data.get("raw_response"):
+                    if scraper_data.get("short_description"):
+                        update_data["short_description"] = scraper_data["short_description"]
+                    if scraper_data.get("category"):
+                        update_data["category"] = scraper_data["category"]
+                    if scraper_data.get("price"):
+                        update_data["price"] = scraper_data["price"]
+                    if scraper_data.get("raw_response"):
                         update_data["firecrawl_data"] = {
-                            "raw_response": firecrawl_data["raw_response"],
+                            "raw_response": scraper_data["raw_response"],
                             "extracted_at": datetime.utcnow()
                         }
+                    
+                    if scraper_data.get("image_url"):
+                        update_data["image_url"] = scraper_data["image_url"]
                     
                     if update_data:
                         await ProductService.update(str(existing_product.id), update_data)
         else:
+            image_url = trend.metadata.get("thumbnail") if trend.metadata else None
+
             # Create new product
             product_data = ProductCreate(
                 product_name=product_name,
                 normalized_name=normalized_name,
                 category=category,
+                image_url=image_url,
                 trend_sources=[trend_source],
                 trend_score=10.0,
                 tags=[]  # TODO: Extract tags from text
             )
             
-            # Try to enrich with Firecrawl data
+            # Try to enrich with NativeScraper data
             if trend.source_url:
-                firecrawl_data = await FirecrawlService.scrape_url(trend.source_url)
-                if firecrawl_data:
-                    if firecrawl_data.get("short_description"):
-                        product_data.short_description = firecrawl_data["short_description"]
-                    if firecrawl_data.get("category") and not product_data.category:
-                        product_data.category = firecrawl_data["category"]
-                    if firecrawl_data.get("price"):
-                        product_data.price = firecrawl_data["price"]
-                    if firecrawl_data.get("raw_response"):
+                scraper_data = await NativeScraperService.scrape_product_details(trend.source_url)
+                if scraper_data:
+                    if scraper_data.get("short_description"):
+                        product_data.short_description = scraper_data["short_description"]
+                    if scraper_data.get("category") and not product_data.category:
+                        product_data.category = scraper_data["category"]
+                    if scraper_data.get("price"):
+                        product_data.price = scraper_data["price"]
+                    if scraper_data.get("image_url") and not product_data.image_url:
+                        product_data.image_url = scraper_data["image_url"]
+                    if scraper_data.get("raw_response"):
                         product_data.firecrawl_data = {
-                            "raw_response": firecrawl_data["raw_response"],
+                            "raw_response": scraper_data["raw_response"],
                             "extracted_at": datetime.utcnow()
                         }
             
             await ProductService.create(product_data)
             stats["products_created"] += 1
             
-            # Create mock buy links (in production, would scrape e-commerce sites)
-            await ProcessorService._create_mock_buy_links(product_data.product_name, product_data.normalized_name)
+            # Create Amazon search links
+            await ProcessorService._create_amazon_search_links(product_data.product_name, product_data.normalized_name)
     
     @staticmethod
-    async def _create_mock_buy_links(product_name: str, normalized_name: str):
-        """Create mock buy links for a product (placeholder for real e-commerce scraping)"""
+    async def _create_amazon_search_links(product_name: str, normalized_name: str):
+        """Create Amazon India search buy links for a product"""
         from app.services.buy_link_service import BuyLinkService
         
         # Get the product we just created
@@ -156,18 +164,16 @@ class ProcessorService:
         if not product:
             return
         
-        # Mock Amazon link
+        # Amazon Search Link
         amazon_link = BuyLinkCreate(
             product_id=str(product.id),
             platform="amazon",
-            url=f"https://amazon.com/s?k={product_name.replace(' ', '+')}",
-            title=f"{product_name} - Buy on Amazon",
-            price=249.99,  # Mock price
-            currency="USD",
-            availability="in_stock",
-            rating=4.5,
-            review_count=1234,
-            metadata={"mock": True}
+            url=f"https://amazon.in/s?k={product_name.replace(' ', '+')}",
+            title=f"Search {product_name} on Amazon",
+            price=None,
+            currency="INR",
+            availability="check_site",
+            metadata={"source": "search_fallback"}
         )
         
         await BuyLinkService.create(amazon_link)

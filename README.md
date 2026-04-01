@@ -1,8 +1,8 @@
 # TrendFind
 
-**Automatically detect trending products from social media, identify what they are, and find where to buy them.**
+**Automatically detect India-specific trending products from social networks, identify what they are, and find where to buy them.**
 
-TrendFind scrapes trending topics from Google Trends, YouTube, and Instagram, uses NLP to identify product mentions, and aggregates buying options from e-commerce sites.
+TrendFind scrapes live trending topics from Indian subreddits (`r/IndiaTech`, `r/IndianBeautyDeals`), Google Trends (India), and other platforms. It uses spaCy NLP to identify product mentions, extracts real Open Graph thumbnails, and automatically generates reliable buy links for Amazon India.
 
 ## 🏗️ Architecture
 
@@ -58,7 +58,7 @@ trendfind/
 2. **Create virtual environment:**
    ```bash
    python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   source venv/bin/activate  # On Windows: venv/Scripts/activate
    ```
 
 3. **Install dependencies:**
@@ -146,11 +146,10 @@ All collections include:
 
 ## 🔄 How It Works
 
-1. **Scraping**: Collects trending topics from Google Trends, YouTube, and Instagram
-2. **NLP Processing**: Extracts product names using spaCy NER
-3. **Deduplication**: Uses fuzzy matching to merge similar products
-4. **Enrichment**: Fetches additional info from Firecrawl
-5. **E-commerce**: Aggregates buy links (currently mocked)
+1. **Scraping**: Natively collects live trending topics from Google Trends (IN) and Indian subreddits using automated JSON fallback bypassing failing APIs.
+2. **NLP Processing**: Extracts accurate product names using spaCy NER and deduplicates utilizing fuzzy matching.
+3. **Enrichment**: Extracts real Open Graph metadata (`og:image`, `og:description`) from raw HTML to populate rich thumbnails.
+4. **E-commerce**: Automatically generates `amazon.in` affiliate/search links formatted with INR currency.
 
 ## 🛠️ Development
 
@@ -178,14 +177,13 @@ All collections include:
 4. View products at `/products`
 5. Click on a product to see details and buy links
 
-### Mock Data
+### Graceful Degradation & Free APIs
 
-The application uses mock data when API credentials are not provided:
-- Google Trends (works without API key, falls back to mock if library not installed)
-- YouTube trends (mock if API key not provided)
-- Instagram trends (mock - API access is restricted)
-- Firecrawl responses (mock)
-- Amazon buy links (mock)
+The application has been engineered to avoid hard dependency lock-in:
+- **Reddit**: Bypasses required API keys using native `.json` scraping on subreddits.
+- **Open Graph**: Extracts images and descriptions using `httpx` and `BeautifulSoup` when third-party APIs like Firecrawl limit access.
+- **Google Trends**: Uses Python native scraping specific to the `IN` region.
+- **Amazon Links**: Dynamically generates real India-specific `amazon.in` query strings rather than fixed dummy links.
 
 ## 🔧 Configuration
 
@@ -220,13 +218,13 @@ PRODUCT_NAME_SIMILARITY_THRESHOLD=0.85
 ## 📝 Features
 
 ### Current (MVP)
-- ✅ Scrape trends from Google Trends (free, no API key required)
-- ✅ Scrape trends from YouTube (free tier available)
-- ✅ Scrape trends from Instagram (mock data)
-- ✅ Extract product names using NLP
-- ✅ Store products in MongoDB
-- ✅ Display products in React UI
-- ✅ Product detail pages with buy links
+- ✅ Scrape live trends from India-specific subreddits natively (no API key required)
+- ✅ Scrape trends from Google Trends India (free)
+- ✅ Extract product names and descriptions using NLP
+- ✅ Real thumbnail extraction via Open Graph HTML meta tags
+- ✅ Store dynamically extracted products in MongoDB
+- ✅ Display products in a React UI
+- ✅ Product detail pages with dynamically generated `amazon.in` searching links in INR
 - ✅ Deduplication using fuzzy matching
 
 ### Future Enhancements

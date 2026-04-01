@@ -13,23 +13,20 @@ router = APIRouter()
 
 def serialize_product(product: Product) -> Dict[str, Any]:
     """Serialize product ensuring id is always a string"""
-    # Use by_alias=False to get the 'id' field instead of '_id'
     data = product.model_dump(mode='json', by_alias=False)
     
-    # Ensure id is a string if it exists
-    if 'id' in data:
-        if isinstance(data['id'], ObjectId):
-            data['id'] = str(data['id'])
-        elif data['id'] is not None:
-            data['id'] = str(data['id'])
-    # Also check for _id and convert to id if needed
-    elif '_id' in data:
-        if isinstance(data['_id'], ObjectId):
-            data['id'] = str(data['_id'])
-        else:
-            data['id'] = str(data['_id'])
+    # Robustly get ID either from model attribute or dict dump
+    product_id = getattr(product, "id", None) or getattr(product, "_id", None)
+    if product_id is None:
+        d_alias = product.model_dump(mode='json', by_alias=True)
+        product_id = d_alias.get('_id') or d_alias.get('id')
+        
+    if product_id is not None:
+        data['id'] = str(product_id)
+        
+    if '_id' in data:
         del data['_id']
-    
+        
     return data
 
 
