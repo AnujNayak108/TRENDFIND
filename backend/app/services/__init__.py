@@ -8,6 +8,8 @@ from app.services.scraper_service import ScraperService
 from app.services.nlp_service import NLPService
 from app.services.native_scraper_service import NativeScraperService
 from app.services.processor_service import ProcessorService
+from app.services.google_trends_scraper import GoogleTrendsScraper
+from app.services.youtube_scraper import YouTubeScraper
 
 __all__ = [
     "TrendService",
@@ -17,4 +19,6 @@ __all__ = [
     "NLPService",
     "NativeScraperService",
     "ProcessorService",
+    "GoogleTrendsScraper",
+    "YouTubeScraper",
 ]

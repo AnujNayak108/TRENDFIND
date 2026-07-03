@@ -14,7 +14,7 @@ class Settings(BaseSettings):
         env_file=".env",
         case_sensitive=True,
         env_parse_none_str="None",
-        extra="ignore"  # Ignore extra fields in .env file (like old Reddit/Twitter configs)
+        extra="ignore"  # Ignore extra fields in .env file
     )
     
     # Application
@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     DATABASE_NAME: str = "trendfind"
     
     # CORS - can be comma-separated string or JSON array
-    CORS_ORIGINS: Union[List[str], str] = ["http://localhost:3000", "https://trendfind-seven.vercel.app/"]
+    CORS_ORIGINS: Union[List[str], str] = ["http://localhost:3000", "http://localhost:5173", "https://trendfind-seven.vercel.app/"]
     
     @field_validator('CORS_ORIGINS', mode='before')
     @classmethod
@@ -40,27 +40,64 @@ class Settings(BaseSettings):
                 return [origin.strip() for origin in v.split(',') if origin.strip()]
         return v
     
-    # Firecrawl API
+    # Firecrawl API (optional enrichment)
     FIRECRAWL_API_KEY: str = ""
     FIRECRAWL_API_URL: str = "https://api.firecrawl.dev/v1"
     
-    # Scraping
-    SCRAPE_INTERVAL_MINUTES: int = 60
+    # Scraping intervals
+    SCRAPE_INTERVAL_MINUTES: int = 30
     MAX_TRENDS_PER_SOURCE: int = 50
     
     # NLP
     SPACY_MODEL: str = "en_core_web_sm"
     PRODUCT_NAME_SIMILARITY_THRESHOLD: float = 0.85
     
-    # Google Trends (no API key required - completely free)
-    # Uses pytrends library
+    # Google Trends (free - no API key required)
+    GOOGLE_TRENDS_GEO: str = "IN"
     
-    # YouTube Data API (optional - free tier available)
+    # YouTube Data API (free tier - 10,000 units/day)
     YOUTUBE_API_KEY: str = ""
+    YOUTUBE_SEARCH_QUERIES: List[str] = [
+        "trending products India 2026",
+        "best gadgets India",
+        "Amazon India sale best deals",
+        "Flipkart trending products",
+        "best earbuds India",
+        "best smartphones India under",
+    ]
     
-    # Instagram (mock data - API access is restricted)
-    # For production, consider using Instagram Basic Display API
+    # Reddit (free - .json endpoints, no API key)
+    REDDIT_SUBREDDITS: List[str] = [
+        "IndianGaming",
+        "india",
+        "dealsforindia",
+        "indianbeautydeals",
+        "HeadphoneIndia",
+        "IndianFashionAddicts",
+    ]
+    REDDIT_MIN_UPVOTES: int = 5
+    
+    @field_validator('YOUTUBE_SEARCH_QUERIES', mode='before')
+    @classmethod
+    def parse_youtube_queries(cls, v):
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except json.JSONDecodeError:
+                return [q.strip() for q in v.split(',') if q.strip()]
+        return v
+    
+    @field_validator('REDDIT_SUBREDDITS', mode='before')
+    @classmethod
+    def parse_subreddits(cls, v):
+        if isinstance(v, str):
+            try:
+                return json.loads(v)
+            except json.JSONDecodeError:
+                return [s.strip() for s in v.split(',') if s.strip()]
+        return v
 
 
 settings = Settings()
+
 

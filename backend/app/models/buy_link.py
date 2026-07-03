@@ -15,7 +15,7 @@ class BuyLinkBase(BaseModel):
     url: str = Field(..., description="Product URL on the platform")
     title: Optional[str] = Field(None, description="Product title on the platform")
     price: Optional[float] = Field(None, description="Product price")
-    currency: str = Field(default="USD", description="Currency code")
+    currency: str = Field(default="INR", description="Currency code")
     availability: Optional[str] = Field(None, description="Availability status")
     rating: Optional[float] = Field(None, description="Product rating")
     review_count: Optional[int] = Field(None, description="Number of reviews")

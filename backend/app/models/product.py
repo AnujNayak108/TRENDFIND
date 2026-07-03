@@ -13,7 +13,7 @@ class PriceInfo(BaseModel):
     """Price information model"""
     min: Optional[float] = None
     max: Optional[float] = None
-    currency: str = Field(default="USD", description="Currency code")
+    currency: str = Field(default="INR", description="Currency code")
 
 
 class TrendSource(BaseModel):

@@ -51,10 +51,11 @@ function Home() {
       <div className="text-center relative z-10 animate-fade-in mt-16 mb-20">
         <h1 className="text-5xl md:text-7xl font-display font-black text-white mb-6 tracking-tight">
           Discover <span className="text-gradient">Trending</span> Products
+          <span className="block text-3xl md:text-4xl mt-2 text-gray-400 font-light">in India 🇮🇳</span>
         </h1>
         <p className="text-xl text-gray-400 mb-10 max-w-2xl mx-auto font-light leading-relaxed">
-          TrendFind automatically detects trending products from social media,
-          identifies what they are, and shows you exactly where to buy them.
+          TrendFind crawls Google Trends, Reddit, and YouTube to find what Indians are
+          buying right now — then shows you where to get it on Amazon, Flipkart, and more.
         </p>
 
         <div className="flex justify-center space-x-6 mb-16">
@@ -125,29 +126,29 @@ function Home() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-24">
           <div className="glass-card p-8 group">
             <div className="w-14 h-14 rounded-2xl bg-primary-500/10 border border-primary-500/20 flex items-center justify-center mb-6 ml-auto mr-auto transition-transform group-hover:scale-110 group-hover:rotate-3 duration-300">
-              <span className="text-primary-400 text-2xl">🔍</span>
+              <span className="text-primary-400 text-2xl">🇮🇳</span>
             </div>
-            <h3 className="text-xl font-display font-semibold text-white mb-3">Global Scanning</h3>
+            <h3 className="text-xl font-display font-semibold text-white mb-3">India-Focused Scanning</h3>
             <p className="text-gray-400 leading-relaxed text-sm">
-              Automatically detects trending signals across TikTok, Google Trends, YouTube, and Instagram.
+              Crawls Google Trends India, r/IndianGaming, r/dealsforindia, and YouTube India for real trending signals.
             </p>
           </div>
           <div className="glass-card p-8 group">
             <div className="w-14 h-14 rounded-2xl bg-accent-purple/10 border border-accent-purple/20 flex items-center justify-center mb-6 ml-auto mr-auto transition-transform group-hover:scale-110 group-hover:-rotate-3 duration-300">
               <span className="text-accent-purple text-2xl">🧠</span>
             </div>
-            <h3 className="text-xl font-display font-semibold text-white mb-3">AI Intelligence</h3>
+            <h3 className="text-xl font-display font-semibold text-white mb-3">Smart Product Detection</h3>
             <p className="text-gray-400 leading-relaxed text-sm">
-              Uses advanced NLP models to parse conversational noise and identify actual product names.
+              Uses an India-specific brand database and product keyword engine to extract real products from noisy social data.
             </p>
           </div>
           <div className="glass-card p-8 group">
             <div className="w-14 h-14 rounded-2xl bg-accent-pink/10 border border-accent-pink/20 flex items-center justify-center mb-6 ml-auto mr-auto transition-transform group-hover:scale-110 group-hover:rotate-3 duration-300">
               <span className="text-accent-pink text-2xl">🛒</span>
             </div>
-            <h3 className="text-xl font-display font-semibold text-white mb-3">Instant Checkout</h3>
+            <h3 className="text-xl font-display font-semibold text-white mb-3">Multi-Store Links</h3>
             <p className="text-gray-400 leading-relaxed text-sm">
-              Automatically finds direct buying options and authentic retailers for the identified trends.
+              Generates buy links across Amazon India, Flipkart, Croma, Myntra, and Nykaa based on product category.
             </p>
           </div>
         </div>
