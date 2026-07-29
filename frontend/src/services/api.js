@@ -13,7 +13,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 30000, // 30s timeout - scraping across multiple sources takes time
+  timeout: 300000, // 5m timeout - scraping across multiple sources takes time
 })
 
 export const trendsAPI = {

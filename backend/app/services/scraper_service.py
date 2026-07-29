@@ -82,9 +82,12 @@ class ScraperService:
     @staticmethod
     async def _scrape_reddit() -> List[TrendCreate]:
         """Scrape all configured Indian subreddits"""
-        trends = []
         
-        for subreddit in settings.REDDIT_SUBREDDITS:
+        async def _scrape_single(subreddit: str, delay: float) -> List[TrendCreate]:
+            if delay > 0:
+                await asyncio.sleep(delay)
+                
+            subreddit_trends = []
             try:
                 url = f"https://www.reddit.com/r/{subreddit}/hot/"
                 
@@ -116,14 +119,24 @@ class ScraperService:
                             "thumbnail": item.get("thumbnail"),
                         }
                     )
-                    trends.append(trend)
-                
-                # Small delay between subreddits to avoid rate limiting
-                await asyncio.sleep(2.0)
-                
+                    subreddit_trends.append(trend)
             except Exception as e:
                 logger.error(f"Error scraping r/{subreddit}: {e}")
-                continue
+            return subreddit_trends
+
+        tasks = []
+        for i, subreddit in enumerate(settings.REDDIT_SUBREDDITS):
+            # stagger requests slightly by 0.5s per subreddit to avoid instant 429
+            tasks.append(_scrape_single(subreddit, i * 0.5))
+            
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        
+        trends = []
+        for res in results:
+            if isinstance(res, list):
+                trends.extend(res)
+            elif isinstance(res, Exception):
+                logger.error(f"Reddit scraper task failed: {res}")
                 
         # Fallback if API blocked
         if not trends:

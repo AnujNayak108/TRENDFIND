@@ -5,6 +5,7 @@ and cross-platform validation for trend scoring.
 """
 import logging
 from typing import List, Dict
+import asyncio
 from datetime import datetime, timedelta
 
 from app.services.trend_service import TrendService
@@ -36,36 +37,42 @@ class ProcessorService:
         # Get unprocessed trends
         unprocessed_trends = await TrendService.get_unprocessed()
 
-        for trend in unprocessed_trends:
-            try:
-                # Extract product names from trend content
-                text = f"{trend.title} {trend.content or ''}"
-                product_names = NLPService.extract_product_names(text)
+        semaphore = asyncio.Semaphore(10)
 
-                if not product_names:
-                    # Mark as processed even if no products found
+        async def process_single_trend(trend):
+            async with semaphore:
+                try:
+                    # Extract product names from trend content
+                    text = f"{trend.title} {trend.content or ''}"
+                    product_names = NLPService.extract_product_names(text)
+
+                    if not product_names:
+                        # Mark as processed even if no products found
+                        await TrendService.mark_as_processed(str(trend.id))
+                        stats["trends_processed"] += 1
+                        return
+
+                    stats["products_detected"] += len(product_names)
+
+                    # Process each potential product
+                    for product_name in product_names:
+                        await ProcessorService._process_product(
+                            product_name,
+                            trend,
+                            stats
+                        )
+
+                    # Mark trend as processed
                     await TrendService.mark_as_processed(str(trend.id))
                     stats["trends_processed"] += 1
-                    continue
 
-                stats["products_detected"] += len(product_names)
+                except Exception as e:
+                    logger.error(f"Error processing trend {trend.id}: {e}")
 
-                # Process each potential product
-                for product_name in product_names:
-                    await ProcessorService._process_product(
-                        product_name,
-                        trend,
-                        stats
-                    )
-
-                # Mark trend as processed
-                await TrendService.mark_as_processed(str(trend.id))
-                stats["trends_processed"] += 1
-
-            except Exception as e:
-                logger.error(f"Error processing trend {trend.id}: {e}")
-                # Continue with next trend
-                continue
+        # Run all trend processing tasks concurrently
+        tasks = [process_single_trend(trend) for trend in unprocessed_trends]
+        if tasks:
+            await asyncio.gather(*tasks)
 
         return stats
 
