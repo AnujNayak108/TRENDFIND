@@ -3,7 +3,7 @@ import axios from 'axios'
 // Normalize VITE_API_URL so deployments that set only the domain still work
 const rawApiUrl = (import.meta.env.VITE_API_URL || '').trim()
 const API_BASE_URL = rawApiUrl
-  ? rawApiUrl.replace(/\/+$/,'') + '/api/v1' // ensure it ends with /api/v1
+  ? (rawApiUrl.endsWith('/api/v1') ? rawApiUrl : rawApiUrl.replace(/\/+$/,'') + '/api/v1')
   : '/api/v1'
 
 console.log('API Base URL:', API_BASE_URL)

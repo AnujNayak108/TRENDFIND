@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     DATABASE_NAME: str = "trendfind"
     
     # CORS - can be comma-separated string or JSON array
-    CORS_ORIGINS: Union[List[str], str] = ["http://localhost:3000", "http://localhost:5173", "https://trendfind-seven.vercel.app/"]
+    CORS_ORIGINS: Union[List[str], str] = ["http://localhost:3000", "http://localhost:5173", "https://trendfind-seven.vercel.app"]
     
     @field_validator('CORS_ORIGINS', mode='before')
     @classmethod
