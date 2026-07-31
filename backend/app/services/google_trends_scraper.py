@@ -48,7 +48,7 @@ class GoogleTrendsScraper:
             import httpx
             import xml.etree.ElementTree as ET
             
-            url = f"https://trends.google.com/trends/trendingsearches/daily/rss?geo={geo}"
+            url = f"https://trends.google.com/trending/rss?geo={geo}"
             async with httpx.AsyncClient(timeout=15.0) as client:
                 response = await client.get(url)
                 response.raise_for_status()
