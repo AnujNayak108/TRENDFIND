@@ -34,10 +34,15 @@ class Settings(BaseSettings):
         if isinstance(v, str):
             # Try to parse as JSON first
             try:
-                return json.loads(v)
+                parsed = json.loads(v)
+                if isinstance(parsed, list):
+                    return [origin.rstrip('/') for origin in parsed]
+                return parsed
             except json.JSONDecodeError:
                 # If not JSON, split by comma
-                return [origin.strip() for origin in v.split(',') if origin.strip()]
+                return [origin.strip().rstrip('/') for origin in v.split(',') if origin.strip()]
+        if isinstance(v, list):
+            return [origin.rstrip('/') for origin in v]
         return v
     
     # Firecrawl API (optional enrichment)
